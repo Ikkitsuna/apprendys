@@ -31,10 +31,27 @@ if [ ! -d "$REPO_DIR/.git" ]; then
     exit 0
 fi
 
-# Verifier internet reel (pas un portail captif)
-if \! curl -fsSL --max-time 5 https://raw.githubusercontent.com/Ikkitsuna/apprendys/main/VERSION > /tmp/remote-version 2>/dev/null; then
-    log "Pas d internet ou GitHub injoignable, skip update"
-    exit 0
+# Canal de mise a jour (par defaut : main)
+# Modifier /mnt/apprendys/.channel pour cibler une branche specifique
+# Exemples : main, ecole-X, premium, beta
+CHANNEL=$(cat /mnt/apprendys/.channel 2>/dev/null | tr -d '[:space:]')
+CHANNEL=${CHANNEL:-main}
+log "Canal : $CHANNEL"
+
+# Verifier internet reel via VERSION du canal (pas un simple ping)
+if ! curl -fsSL --max-time 5 \
+    "https://raw.githubusercontent.com/Ikkitsuna/apprendys/${CHANNEL}/VERSION" \
+    > /tmp/remote-version 2>/dev/null; then
+    # Fallback sur main si le canal est introuvable
+    if [ "$CHANNEL" != "main" ] && curl -fsSL --max-time 5 \
+        "https://raw.githubusercontent.com/Ikkitsuna/apprendys/main/VERSION" \
+        > /tmp/remote-version 2>/dev/null; then
+        log "Canal '$CHANNEL' introuvable, fallback sur main"
+        CHANNEL="main"
+    else
+        log "Pas d internet ou GitHub injoignable, skip update"
+        exit 0
+    fi
 fi
 
 # Comparer les versions
@@ -43,11 +60,11 @@ REMOTE_VERSION=$(cat /tmp/remote-version 2>/dev/null || echo "0.0.0")
 rm -f /tmp/remote-version
 
 if [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
-    log "Deja a jour (v$LOCAL_VERSION)"
+    log "Deja a jour (v$LOCAL_VERSION, canal=$CHANNEL)"
     exit 0
 fi
 
-log "Mise a jour disponible : v$LOCAL_VERSION -> v$REMOTE_VERSION"
+log "Mise a jour disponible : v$LOCAL_VERSION -> v$REMOTE_VERSION (canal=$CHANNEL)"
 
 # Anti-double execution
 if [ -f "$LOCKFILE" ]; then
@@ -56,11 +73,12 @@ if [ -f "$LOCKFILE" ]; then
 fi
 touch "$LOCKFILE"
 
-# Pull
+# Pull depuis le bon canal
 cd "$REPO_DIR" || { rm -f "$LOCKFILE"; exit 1; }
-if git pull origin main --ff-only 2>/dev/null; then
-    log "Pull OK"
-    # Appliquer les changements
+if git fetch origin "$CHANNEL" 2>/dev/null && \
+   git checkout "$CHANNEL" 2>/dev/null && \
+   git pull origin "$CHANNEL" --ff-only 2>/dev/null; then
+    log "Pull OK (canal=$CHANNEL, v$REMOTE_VERSION)"
     if [ -x "$REPO_DIR/apply.sh" ]; then
         bash "$REPO_DIR/apply.sh" 2>/dev/null
         log "apply.sh execute"
@@ -69,7 +87,7 @@ if git pull origin main --ff-only 2>/dev/null; then
         sudo -u apprendys notify-send -i dialog-information "Apprendys mis a jour" \
         "Version $REMOTE_VERSION installee." -t 5000 2>/dev/null
 else
-    log "ERREUR: git pull a echoue"
+    log "ERREUR: git pull a echoue (canal=$CHANNEL)"
 fi
 
 rm -f "$LOCKFILE"
