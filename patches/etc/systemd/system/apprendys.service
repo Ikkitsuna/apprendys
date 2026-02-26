@@ -1,0 +1,16 @@
+[Unit]
+Description=Apprendys - Environnement educatif accessible
+# Le montage P4/P5 est deja fait par apprendys-mount.service
+After=apprendys-mount.service multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/opt/apprendys/boot/apprendys-boot.sh
+ExecStop=/bin/bash -c "pkill -f apprendys-update.sh 2>/dev/null; kill $(cat /run/gnuramage.pid 2>/dev/null) 2>/dev/null; true"
+TimeoutStopSec=15
+Restart=no
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

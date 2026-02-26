@@ -1,0 +1,31 @@
+# Squashfs binaires (trop gros pour GitHub)
+*.squashfs
+*.squashfs.*
+
+# Images disque VM
+*.qcow2
+*.vmdk
+*.vdi
+*.iso
+
+# Fichiers temporaires
+*.log
+*.tmp
+*.bak
+
+# Clés SSH / credentials
+id_rsa
+id_ed25519
+*.pem
+*.key
+
+# Profils WiFi (données personnelles)
+nm-connections/
+
+# Archives de build intermédiaires
+*.tar.gz
+*.tar.bz2
+
+# OS
+.DS_Store
+Thumbs.db

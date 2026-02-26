@@ -1,0 +1,15 @@
+[Unit]
+Description=Apprendys - Montage P4/P5 et persistance WiFi/BT
+# Doit tourner AVANT NetworkManager pour que les symlinks WiFi soient prets
+DefaultDependencies=no
+After=local-fs.target
+Before=NetworkManager.service
+Before=bluetooth.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/apprendys/boot/mount-partitions.sh
+
+[Install]
+WantedBy=sysinit.target
