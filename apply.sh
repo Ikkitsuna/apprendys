@@ -15,13 +15,21 @@ RAMDISK="/dev/shm/apprendys"
 
 log() { logger -t "$LOG_TAG" "$1"; echo "[apply] $1"; }
 
-log "apply.sh debut (v$(cat "$REPO/VERSION" 2>/dev/null || echo '?'))"
+# Mode : defaut = base (--delete, ardoise propre), --overlay = ajout par-dessus sans effacer
+MODE="${1:-}"
 
-# 1. Sync patches vers RAMDISK (autoritatif : --delete)
-#    gnuramage persistera vers P4 au prochain cycle
+log "apply.sh debut (v$(cat "$REPO/VERSION" 2>/dev/null || echo '?') mode=${MODE:-base})"
+
+# 1. Sync patches vers RAMDISK
+#    --base  : rsync --delete (autoritatif, efface ce qui n'est plus dans le repo)
+#    --overlay : rsync sans --delete (ajoute/ecrase seulement, conserve les patches base)
 if [ -d "$REPO/patches" ]; then
     mkdir -p "$RAMDISK/patches"
-    rsync -a --delete "$REPO/patches/" "$RAMDISK/patches/" 2>/dev/null
+    if [ "$MODE" = "--overlay" ]; then
+        rsync -a "$REPO/patches/" "$RAMDISK/patches/" 2>/dev/null
+    else
+        rsync -a --delete "$REPO/patches/" "$RAMDISK/patches/" 2>/dev/null
+    fi
     log "Patches synces vers RAMDISK"
 fi
 

@@ -38,23 +38,16 @@ CHANNEL=$(cat /mnt/apprendys/.channel 2>/dev/null | tr -d '[:space:]')
 CHANNEL=${CHANNEL:-main}
 log "Canal : $CHANNEL"
 
-# Verifier internet reel via VERSION du canal (pas un simple ping)
+# Verifier internet reel via VERSION de main (reference commune pour tous les canaux)
+# Quand tu veux declencher une MAJ (main OU canal), tu bumpes toujours main/VERSION
 if ! curl -fsSL --max-time 5 \
-    "https://raw.githubusercontent.com/Ikkitsuna/apprendys/${CHANNEL}/VERSION" \
+    "https://raw.githubusercontent.com/Ikkitsuna/apprendys/main/VERSION" \
     > /tmp/remote-version 2>/dev/null; then
-    # Fallback sur main si le canal est introuvable
-    if [ "$CHANNEL" != "main" ] && curl -fsSL --max-time 5 \
-        "https://raw.githubusercontent.com/Ikkitsuna/apprendys/main/VERSION" \
-        > /tmp/remote-version 2>/dev/null; then
-        log "Canal '$CHANNEL' introuvable, fallback sur main"
-        CHANNEL="main"
-    else
-        log "Pas d internet ou GitHub injoignable, skip update"
-        exit 0
-    fi
+    log "Pas d internet ou GitHub injoignable, skip update"
+    exit 0
 fi
 
-# Comparer les versions
+# Comparer les versions (reference : main)
 LOCAL_VERSION=$(cat "$REPO_DIR/VERSION" 2>/dev/null || echo "0.0.0")
 REMOTE_VERSION=$(cat /tmp/remote-version 2>/dev/null || echo "0.0.0")
 rm -f /tmp/remote-version
@@ -73,21 +66,43 @@ if [ -f "$LOCKFILE" ]; then
 fi
 touch "$LOCKFILE"
 
-# Pull depuis le bon canal
 cd "$REPO_DIR" || { rm -f "$LOCKFILE"; exit 1; }
-if git fetch origin "$CHANNEL" 2>/dev/null && \
-   git checkout "$CHANNEL" 2>/dev/null && \
-   git pull origin "$CHANNEL" --ff-only 2>/dev/null; then
-    log "Pull OK (canal=$CHANNEL, v$REMOTE_VERSION)"
+
+# Systeme a deux couches :
+# - Couche 1 (main)  : patches communs a TOUS les canaux (rsync --delete)
+# - Couche 2 (canal) : patches specifiques a cette ecole/groupe (rsync sans --delete)
+# Si canal == main : une seule couche, comportement normal.
+
+# Couche 1 : toujours appliquer main en premier
+if git fetch origin main 2>/dev/null && \
+   git checkout main 2>/dev/null && \
+   git pull origin main --ff-only 2>/dev/null; then
+    log "Pull main OK (base commune v$REMOTE_VERSION)"
     if [ -x "$REPO_DIR/apply.sh" ]; then
         bash "$REPO_DIR/apply.sh" 2>/dev/null
-        log "apply.sh execute"
     fi
-    DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
-        sudo -u apprendys notify-send -i dialog-information "Apprendys mis a jour" \
-        "Version $REMOTE_VERSION installee." -t 5000 2>/dev/null
 else
-    log "ERREUR: git pull a echoue (canal=$CHANNEL)"
+    log "ERREUR: git pull main a echoue"
+    rm -f "$LOCKFILE"; exit 1
 fi
+
+# Couche 2 : si canal specifique, appliquer par-dessus (overlay, sans effacer main)
+if [ "$CHANNEL" != "main" ]; then
+    if git fetch origin "$CHANNEL" 2>/dev/null && \
+       git checkout "$CHANNEL" 2>/dev/null && \
+       git pull origin "$CHANNEL" --ff-only 2>/dev/null; then
+        log "Pull $CHANNEL OK (overlay specifique)"
+        if [ -x "$REPO_DIR/apply.sh" ]; then
+            bash "$REPO_DIR/apply.sh" --overlay 2>/dev/null
+        fi
+        log "apply.sh execute (2 couches : main + $CHANNEL)"
+    else
+        log "Canal '$CHANNEL' introuvable ou pull echoue - patches main appliques uniquement"
+    fi
+fi
+
+DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+    sudo -u apprendys notify-send -i dialog-information "Apprendys mis a jour" \
+    "Version $REMOTE_VERSION installee." -t 5000 2>/dev/null
 
 rm -f "$LOCKFILE"
