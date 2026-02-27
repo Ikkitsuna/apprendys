@@ -1,0 +1,15 @@
+#!/bin/bash
+# Apprendys - Declenche la MAJ silencieuse a chaque connexion reseau
+# NetworkManager appelle ce script avec : $1=interface $2=action
+
+ACTION="$2"
+
+[ "$ACTION" = "up" ] || [ "$ACTION" = "connectivity-change" ] || exit 0
+
+# Attendre que le DNS soit operationnel
+sleep 5
+
+# Lancer la MAJ en arriere-plan si P4 est monte
+if mountpoint -q /mnt/apprendys 2>/dev/null; then
+    /opt/apprendys/update/apprendys-update.sh &
+fi
