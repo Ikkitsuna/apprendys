@@ -74,15 +74,17 @@ cd "$REPO_DIR" || { rm -f "$LOCKFILE"; exit 1; }
 # Si canal == main : une seule couche, comportement normal.
 
 # Couche 1 : toujours appliquer main en premier
+# reset --hard garantit que le working tree correspond exactement a origin/main
+# (git pull --ff-only ne corrige pas un working tree sale)
 if git fetch origin main 2>/dev/null && \
    git checkout main 2>/dev/null && \
-   git pull origin main --ff-only 2>/dev/null; then
+   git reset --hard origin/main 2>/dev/null; then
     log "Pull main OK (base commune v$REMOTE_VERSION)"
     if [ -x "$REPO_DIR/apply.sh" ]; then
         bash "$REPO_DIR/apply.sh" 2>/dev/null
     fi
 else
-    log "ERREUR: git pull main a echoue"
+    log "ERREUR: git fetch/reset main a echoue"
     rm -f "$LOCKFILE"; exit 1
 fi
 
@@ -90,7 +92,7 @@ fi
 if [ "$CHANNEL" != "main" ]; then
     if git fetch origin "$CHANNEL" 2>/dev/null && \
        git checkout "$CHANNEL" 2>/dev/null && \
-       git pull origin "$CHANNEL" --ff-only 2>/dev/null; then
+       git reset --hard origin/"$CHANNEL" 2>/dev/null; then
         log "Pull $CHANNEL OK (overlay specifique)"
         if [ -x "$REPO_DIR/apply.sh" ]; then
             bash "$REPO_DIR/apply.sh" --overlay 2>/dev/null
