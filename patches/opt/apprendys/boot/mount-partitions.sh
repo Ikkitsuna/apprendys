@@ -62,6 +62,21 @@ if mountpoint -q /mnt/apprendys; then
     rm -rf /var/lib/bluetooth
     ln -sf /mnt/apprendys/bluetooth /var/lib/bluetooth
     log "Bluetooth : pairages pointes sur P4"
+
+    # Persistance home : Firefox, Chromium, XFCE config
+    # Symlink /home/apprendys/XXX -> P4/config/home/XXX
+    # => historique, prefs, agencement ecrans survivent au reboot
+    HOME_PERSIST="/mnt/apprendys/config/home"
+    HOME_USER="/home/apprendys"
+    for dir in ".mozilla" ".config/chromium" ".config/xfce4"; do
+        mkdir -p "$HOME_PERSIST/$dir"
+        chown -R 1000:1000 "$HOME_PERSIST/$dir"
+        rm -rf "$HOME_USER/$dir"
+        mkdir -p "$HOME_USER/$(dirname "$dir")"
+        ln -sf "$HOME_PERSIST/$dir" "$HOME_USER/$dir"
+        chown -h 1000:1000 "$HOME_USER/$dir"
+    done
+    log "Home persistance : Firefox, Chromium, XFCE -> P4/config/home"
 fi
 
 # --- SYSTEME DE PATCHES P4 ---
