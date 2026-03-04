@@ -23,6 +23,8 @@ if ! mountpoint -q /mnt/apprendys; then
 fi
 
 # --- P5 : NTFS DEVOIRS (devoirs, visible Windows) ---
+# Casper automonte parfois P5 avant nous sous /media/apprendys/DEVOIRS
+# Dans ce cas ntfs3 echoue (deja monte) -> on cree un symlink /mnt/devoirs -> casper mount
 if ! mountpoint -q /mnt/devoirs; then
     if mount -t ntfs3 -o noatime,uid=1000,gid=1000,fmask=0022,dmask=0022 LABEL=DEVOIRS /mnt/devoirs 2>/dev/null; then
         log "P5 (DEVOIRS) monte sur /mnt/devoirs (RW)"
@@ -32,13 +34,21 @@ if ! mountpoint -q /mnt/devoirs; then
             sudo -u apprendys notify-send -i dialog-warning "Devoirs en lecture seule" \
             "Windows a verrouille la cle.\nRedemarrez Windows et choisissez Arreter (pas Veille)." -t 10000 2>/dev/null
     else
-        log "ERREUR: impossible de monter P5 (DEVOIRS)"
+        # Fallback : casper a deja monte P5 sous /media/apprendys/DEVOIRS
+        CASPER_DEVOIRS=$(findmnt -rn -o TARGET -S LABEL=DEVOIRS 2>/dev/null | head -1)
+        if [ -n "$CASPER_DEVOIRS" ] && [ -d "$CASPER_DEVOIRS" ]; then
+            rmdir /mnt/devoirs 2>/dev/null
+            ln -sf "$CASPER_DEVOIRS" /mnt/devoirs
+            log "P5 (DEVOIRS) : symlink /mnt/devoirs -> $CASPER_DEVOIRS (monte par casper)"
+        else
+            log "ERREUR: impossible de monter P5 (DEVOIRS)"
+        fi
     fi
 fi
 
 # Creer les sous-dossiers P5 necessaires
-mkdir -p /mnt/devoirs/autosave /mnt/devoirs/Images /mnt/devoirs/Vidéos /mnt/devoirs/Musique 2>/dev/null
-chown -R 1000:1000 /mnt/devoirs/autosave /mnt/devoirs/Images /mnt/devoirs/Vidéos /mnt/devoirs/Musique 2>/dev/null
+mkdir -p /mnt/devoirs/autosave /mnt/devoirs/Images /mnt/devoirs/Musique 2>/dev/null
+chown -R 1000:1000 /mnt/devoirs/autosave /mnt/devoirs/Images /mnt/devoirs/Musique 2>/dev/null
 
 # --- PERSISTANCE WiFi + Bluetooth via P4 ---
 # NetworkManager : profils WiFi persistants entre sessions
@@ -63,12 +73,14 @@ if mountpoint -q /mnt/apprendys; then
     ln -sf /mnt/apprendys/bluetooth /var/lib/bluetooth
     log "Bluetooth : pairages pointes sur P4"
 
-    # Persistance home : Firefox, Chromium, XFCE config
+    # Persistance home : Firefox, Chromium, audio, XFCE config
     # Symlink /home/apprendys/XXX -> P4/config/home/XXX
-    # => historique, prefs, agencement ecrans survivent au reboot
+    # => historique, prefs, agencement ecrans, son survivent au reboot
     HOME_PERSIST="/mnt/apprendys/config/home"
     HOME_USER="/home/apprendys"
-    for dir in ".mozilla" ".config/chromium" ".config/xfce4"; do
+
+    # Dirs simples : Firefox, Chromium, audio, LibreOffice (safe - crees vides si absents)
+    for dir in ".mozilla" ".config/chromium" ".config/pulse" ".config/libreoffice"; do
         mkdir -p "$HOME_PERSIST/$dir"
         chown -R 1000:1000 "$HOME_PERSIST/$dir"
         rm -rf "$HOME_USER/$dir"
@@ -76,7 +88,23 @@ if mountpoint -q /mnt/apprendys; then
         ln -sf "$HOME_PERSIST/$dir" "$HOME_USER/$dir"
         chown -h 1000:1000 "$HOME_USER/$dir"
     done
-    log "Home persistance : Firefox, Chromium, XFCE -> P4/config/home"
+
+    # XFCE4 : traitement special - seeder depuis squashfs si P4 vide
+    # Sans seed, XFCE demarre sans config => session plante => ecran de login
+    XFCE_P4="$HOME_PERSIST/.config/xfce4"
+    mkdir -p "$XFCE_P4"
+    if [ -z "$(ls -A "$XFCE_P4" 2>/dev/null)" ]; then
+        if [ -d "$HOME_USER/.config/xfce4" ]; then
+            cp -a "$HOME_USER/.config/xfce4/." "$XFCE_P4/" 2>/dev/null
+            log "XFCE4 : config initiale seedee depuis squashfs"
+        fi
+    fi
+    chown -R 1000:1000 "$XFCE_P4"
+    rm -rf "$HOME_USER/.config/xfce4"
+    ln -sf "$XFCE_P4" "$HOME_USER/.config/xfce4"
+    chown -h 1000:1000 "$HOME_USER/.config/xfce4"
+
+    log "Home persistance : Firefox, Chromium, audio, XFCE -> P4/config/home"
 fi
 
 # --- SYSTEME DE PATCHES P4 ---
