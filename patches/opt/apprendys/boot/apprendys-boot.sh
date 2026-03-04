@@ -53,13 +53,17 @@ log "Etape 5/5 : Verification MAJ"
     for i in $(seq 1 90); do
         DEVOIRS=$(findmnt -rn -o TARGET -S LABEL=DEVOIRS 2>/dev/null | head -1)
         if [ -n "$DEVOIRS" ] && [ -d "$DEVOIRS" ]; then
-            rm -f /home/apprendys/Devoirs
+            # Si ~/Devoirs est un repertoire reel (cree par xdg avant que P5 soit dispo),
+            # migrer le contenu vers P5 puis remplacer par symlink
+            if [ -d /home/apprendys/Devoirs ] && [ ! -L /home/apprendys/Devoirs ]; then
+                cp -a /home/apprendys/Devoirs/. "$DEVOIRS"/ 2>/dev/null || true
+                rm -rf /home/apprendys/Devoirs
+            else
+                rm -f /home/apprendys/Devoirs
+            fi
             ln -sf "$DEVOIRS" /home/apprendys/Devoirs
             chown -h 1000:1000 /home/apprendys/Devoirs
-            mkdir -p /home/apprendys/Devoirs/Images \
-                     /home/apprendys/Devoirs/Musique \
-                     /home/apprendys/Devoirs/Videos \
-                     /home/apprendys/Devoirs/autosave 2>/dev/null
+            mkdir -p "$DEVOIRS/Images" "$DEVOIRS/Musique" "$DEVOIRS/Videos" "$DEVOIRS/autosave" 2>/dev/null
             if ! mountpoint -q /mnt/devoirs && [ ! -L /mnt/devoirs ]; then
                 rm -rf /mnt/devoirs
                 ln -sf "$DEVOIRS" /mnt/devoirs

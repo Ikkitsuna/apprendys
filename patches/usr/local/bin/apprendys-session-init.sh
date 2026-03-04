@@ -26,6 +26,9 @@ if [ -f "$WALLPAPER" ]; then
                 -p "/backdrop/screen0/monitor${monitor}/workspace${ws}/last-image" \
                 -s "$WALLPAPER" --create -t string 2>/dev/null
             xfconf-query -c xfce4-desktop \
+                -p "/backdrop/screen0/monitor${monitor}/workspace${ws}/image-path" \
+                -s "$WALLPAPER" --create -t string 2>/dev/null
+            xfconf-query -c xfce4-desktop \
                 -p "/backdrop/screen0/monitor${monitor}/workspace${ws}/image-style" \
                 -s 5 --create -t int 2>/dev/null
         done

@@ -67,6 +67,9 @@ log "Home : /home/apprendys bind-monte depuis P4"
 # --- SYSTEME DE PATCHES P4 ---
 if [ -d /mnt/apprendys/patches ]; then
     rsync -a --ignore-errors /mnt/apprendys/patches/ / 2>/dev/null
+    # Le rsync peut ecraser l'ownership de /home/apprendys avec root:root
+    # (patches/home/apprendys/ est root:root sur P4 apres git clone)
+    chown 1000:1000 /home/apprendys
     log "Patches P4 appliques"
 fi
 
