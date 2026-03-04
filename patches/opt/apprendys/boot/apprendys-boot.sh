@@ -2,9 +2,6 @@
 # ==========================================================
 # Apprendys - Script de demarrage principal
 # CF-Informatik974 - Fevrier 2026
-#
-# Execute par systemd au boot. Orchestre tout le demarrage
-# de l environnement Apprendys.
 # ==========================================================
 
 set -u
@@ -14,9 +11,15 @@ log() { logger -t "$LOG_TAG" "$1"; echo "[boot] $1"; }
 
 log "========== Demarrage Apprendys =========="
 
-# Etape 1 : Monter les partitions
-log "Etape 1/5 : Montage partitions"
-/opt/apprendys/boot/mount-partitions.sh
+# Etape 1 : Montage partitions
+# Normalement fait par apprendys-mount.service (sysinit, avant lightdm).
+# Fallback : si le service est desactive (cles pre-1.0.8), on le fait ici.
+if [ ! -f /run/apprendys-mount-done ]; then
+    log "Etape 1/5 : Montage partitions (fallback - apprendys-mount.service inactif)"
+    /opt/apprendys/boot/mount-partitions.sh
+else
+    log "Etape 1/5 : Montage partitions deja fait par apprendys-mount.service"
+fi
 
 # Etape 2 : Nettoyage
 log "Etape 2/5 : Nettoyage"
@@ -45,20 +48,17 @@ log "Etape 5/5 : Verification MAJ"
 /opt/apprendys/update/apprendys-update.sh &
 
 # Watcher DEVOIRS : udisks2 monte P5 apres le boot (timing variable)
-# Cree ~/Devoirs et /mnt/devoirs des que la partition est disponible
+# Cree ~/Devoirs et fixe /mnt/devoirs des que la partition est disponible
 (
     for i in $(seq 1 90); do
         DEVOIRS=$(findmnt -rn -o TARGET -S LABEL=DEVOIRS 2>/dev/null | head -1)
         if [ -n "$DEVOIRS" ] && [ -d "$DEVOIRS" ]; then
-            # Raccourci utilisateur ~/Devoirs
             rm -f /home/apprendys/Devoirs
             ln -sf "$DEVOIRS" /home/apprendys/Devoirs
             chown -h 1000:1000 /home/apprendys/Devoirs
-            # Creer les sous-dossiers
             mkdir -p /home/apprendys/Devoirs/autosave \
                      /home/apprendys/Devoirs/Images \
                      /home/apprendys/Devoirs/Musique 2>/dev/null
-            # Fixer /mnt/devoirs si encore vide (tmpfs)
             if ! mountpoint -q /mnt/devoirs && [ ! -L /mnt/devoirs ]; then
                 rm -rf /mnt/devoirs
                 ln -sf "$DEVOIRS" /mnt/devoirs
