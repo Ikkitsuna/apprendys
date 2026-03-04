@@ -59,8 +59,10 @@ Ce fichier est une liste vivante — pas un engagement de date.
 - Déploiement clés école = flash + `canal=ecole-X` → proxy + settings pré-configurés
 
 ### GeoGebra hors-ligne
-- PWA Chromium en mode offline (cache service worker)
-- Pas de bake squashfs nécessaire
+- ⚠️ GeoGebra a abandonné Linux : v6+ = Windows/Mac/web uniquement
+- Seul option Linux = Classic 5 portable bundle (non maintenu, non supporté)
+- À reconsidérer si GeoGebra sort une version Linux officielle
+- Alternative : chercher un équivalent (KmPlot, Desmos offline cache...)
 
 ### Modèles IA upgradables P4
 - STT : Whisper (`.bin`) via upgrade P4/models/stt — déjà prévu dans le code
