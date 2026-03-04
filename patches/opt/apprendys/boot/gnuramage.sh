@@ -26,7 +26,8 @@ PIDFILE="/run/gnuramage.pid"
 
 # Dossiers de config copies en RAMDISK (whitelist)
 # Tout le reste (models/, apps/, data/) reste sur P4 uniquement
-CONFIG_DIRS="nm-connections bluetooth patches config scripts icons"
+CONFIG_DIRS="nm-connections bluetooth patches scripts icons"
+# "config" retire : home est desormais directement sur P4 (bind mount)
 
 log() { logger -t "$LOG_TAG" "$1"; echo "[gnuramage] $1"; }
 

@@ -56,9 +56,10 @@ log "Etape 5/5 : Verification MAJ"
             rm -f /home/apprendys/Devoirs
             ln -sf "$DEVOIRS" /home/apprendys/Devoirs
             chown -h 1000:1000 /home/apprendys/Devoirs
-            mkdir -p /home/apprendys/Devoirs/autosave \
-                     /home/apprendys/Devoirs/Images \
-                     /home/apprendys/Devoirs/Musique 2>/dev/null
+            mkdir -p /home/apprendys/Devoirs/Images \
+                     /home/apprendys/Devoirs/Musique \
+                     /home/apprendys/Devoirs/Videos \
+                     /home/apprendys/Devoirs/autosave 2>/dev/null
             if ! mountpoint -q /mnt/devoirs && [ ! -L /mnt/devoirs ]; then
                 rm -rf /mnt/devoirs
                 ln -sf "$DEVOIRS" /mnt/devoirs
