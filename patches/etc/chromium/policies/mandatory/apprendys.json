@@ -1,0 +1,10 @@
+{
+  "DefaultSearchProviderEnabled": true,
+  "DefaultSearchProviderName": "Google",
+  "DefaultSearchProviderSearchURL": "https://www.google.com/search?q={searchTerms}",
+  "DefaultSearchProviderSuggestURL": "https://www.google.com/complete/search?output=chrome&q={searchTerms}",
+  "DefaultSearchProviderIconURL": "https://www.google.com/favicon.ico",
+  "HomepageLocation": "https://www.google.fr",
+  "NewTabPageLocation": "https://www.google.fr",
+  "DownloadDirectory": "/home/apprendys/Devoirs"
+}
