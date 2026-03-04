@@ -71,6 +71,57 @@ Ce fichier est une liste vivante — pas un engagement de date.
 - Bouton dans future app Apprendys : `rm -rf P4/config/home/*`
 - Repart sur le profil squashfs propre au prochain login
 
+### Onboarding premier démarrage
+- Wizard guidé au premier boot : WiFi → test connexion → volume micro → prénom enfant
+- Évite que le parent se retrouve sur un bureau vide sans savoir quoi faire
+- Écrit le prénom dans P4/config pour personnaliser l'interface
+
+### Gestion imprimante
+- CUPS + driver générique IPP/AirPrint baked dans squashfs
+- Ce sera la question n°1 des parents après le WiFi
+- Interface simple : "Ajouter une imprimante" dans le menu
+
+### Backup Devoirs vers Windows
+- Script déclenché au branchement de la clé sur Windows (depuis l'app Windows Forge)
+- Copie P5/Devoirs vers un dossier Windows automatiquement
+- P5 est déjà NTFS donc accessible directement — juste besoin d'un script .bat ou .ps1
+
+### Multi-profil enfant
+- Deux enfants dans la famille = deux dossiers sur P4, sélecteur au login
+- Chaque profil a son home, ses Devoirs sur P5, ses réglages IA
+
+### Contrôle parental léger
+- Plage horaire configurable (ex : pas après 21h)
+- Liste blanche de sites dans Chromium/Firefox (pour les très jeunes)
+- Désactivation du micro/webcam par plage horaire
+
+### Mode kiosque
+- Full screen pour les moins de 8 ans : pas de bureau XFCE visible, juste les 3 icônes
+- Sortie du mode kiosque par combinaison touches (parents uniquement)
+
+---
+
+## Ops / Business
+
+### Telemetry opt-in anonyme
+- Juste : version active, canal, date dernière MAJ, hash matériel anonymisé
+- Permet de savoir combien de clés sont en prod et sur quelle version
+- Strictement opt-in, rien de personnel, RGPD compliant
+
+### Auto-diagnostic au boot
+- Vérifie : espace P4 restant, intégrité symlinks, version patches, dernière MAJ
+- Écrit un rapport lisible sur P5 (`.apprendys-health.txt`) visible depuis Windows
+- En cas de boot raté : log d'erreur sur P5 que le parent envoie au support
+
+### Diagnostic depuis l'app Windows
+- Lire `.apprendys-health.txt` sur P5 sans booter la clé
+- Affiche version, espace, dernière MAJ, erreurs éventuelles
+- Bouton "Envoyer au support" qui ouvre un mail pré-rempli
+
+### Portail revendeur
+- Interface pour créer un canal `revendeur-X` avec branding (wallpaper, nom affiché)
+- Revendeur gère ses propres clés sans accès au repo principal
+
 ---
 
 ## Architecture — rappels clés
