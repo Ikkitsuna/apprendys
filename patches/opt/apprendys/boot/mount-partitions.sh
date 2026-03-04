@@ -88,6 +88,21 @@ if systemctl is-active --quiet NetworkManager 2>/dev/null; then
     nmcli connection reload 2>/dev/null && log "WiFi : NM connexions rechargees (fallback)"
 fi
 
+# --- Fix touchpad I2C (rebind apres warm boot) ---
+# Certains touchpads I2C (ALPS, Elan) ne s'initialisent pas correctement apres warm boot.
+# Un unbind/bind force le controleur a re-enumerer le peripherique.
+for I2C_DEV in /sys/bus/i2c/devices/i2c-*; do
+    DEV=$(basename "$I2C_DEV")
+    DRIVER=$(cat "$I2C_DEV/driver/module/drivers/"*/name 2>/dev/null | head -1)
+    # Appliquer sur tous les touchpads I2C HID (driver i2c_hid_acpi)
+    if readlink "$I2C_DEV/driver" 2>/dev/null | grep -q 'i2c_hid'; then
+        echo "$DEV" > /sys/bus/i2c/drivers/i2c_hid_acpi/unbind 2>/dev/null || true
+        sleep 0.3
+        echo "$DEV" > /sys/bus/i2c/drivers/i2c_hid_acpi/bind 2>/dev/null || true
+        log "Touchpad I2C rebind : $DEV"
+    fi
+done
+
 # Flag : evite double appel depuis apprendys-boot.sh (cles pre-1.0.8)
 touch /run/apprendys-mount-done
 
