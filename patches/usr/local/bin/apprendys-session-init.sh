@@ -97,6 +97,15 @@ if [ -f "$GTK_BOOKMARKS" ]; then
     sed -i '\|file:///mnt/devoirs|d' "$GTK_BOOKMARKS" 2>/dev/null || true
 fi
 
+# Fix Chromium : supprimer SingletonLock stale (laisse par reboot sans fermeture propre)
+# Sans ca : Chromium refuse de demarrer avec "profil utilise par un autre processus"
+CHROMIUM_DIR="/home/apprendys/.config/chromium"
+if [ -d "$CHROMIUM_DIR" ]; then
+    rm -f "$CHROMIUM_DIR/SingletonLock" \
+          "$CHROMIUM_DIR/SingletonSocket" \
+          "$CHROMIUM_DIR/SingletonCookie" 2>/dev/null || true
+fi
+
 # Fix Chromium : dossier "Enregistrer sous" -> ~/Devoirs
 CHROMIUM_PREFS="/home/apprendys/.config/chromium/Default/Preferences"
 if [ -f "$CHROMIUM_PREFS" ]; then
