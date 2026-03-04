@@ -58,6 +58,13 @@ Ce fichier est une liste vivante — pas un engagement de date.
 - Script `create-canal.sh` : crée un canal git + branch avec proxy + config école
 - Déploiement clés école = flash + `canal=ecole-X` → proxy + settings pré-configurés
 
+### TurboWarp (Scratch offline)
+- Fork communautaire de Scratch 3, maintenu activement (builds 2025)
+- AppImage Linux ~150MB, 100% compatible projets Scratch officiels
+- Fonctionne offline complet, plus rapide que Scratch original (compilateur intégré)
+- **Implémentation via patch** : AppImage sur P4 + `.desktop` dans patches
+- https://desktop.turbowarp.org/
+
 ### GeoGebra hors-ligne
 - ⚠️ GeoGebra a abandonné Linux : v6+ = Windows/Mac/web uniquement
 - Seul option Linux = Classic 5 portable bundle (non maintenu, non supporté)
