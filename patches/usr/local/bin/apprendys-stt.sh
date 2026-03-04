@@ -12,8 +12,8 @@ RATE=16000
 P4_STT="/mnt/apprendys/models/stt"
 VOSK_DEFAULT="/opt/vosk/model-fr"
 
-if [ -d "$P4_STT" ] && ! ls "$P4_STT"/*.bin >/dev/null 2>&1; then
-    # P4 contient un modele Vosk (pas de .bin = pas Whisper)
+if [ -d "$P4_STT" ] && [ -n "$(ls -A "$P4_STT" 2>/dev/null)" ] && ! ls "$P4_STT"/*.bin >/dev/null 2>&1; then
+    # P4 contient un modele Vosk non-vide (pas de .bin = pas Whisper)
     VOSK_MODEL="$P4_STT"
 elif [ -d "$VOSK_DEFAULT" ]; then
     VOSK_MODEL="$VOSK_DEFAULT"

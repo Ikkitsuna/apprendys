@@ -1,0 +1,6 @@
+# Apprendys - Fix touchpad ALPS I2C (36B6:C001) sur kernel 6.14+
+# hid-generic ne sait pas parser son descriptor propriétaire
+# On force le rebind vers hid_alps après démarrage
+ACTION=="add", SUBSYSTEM=="hid", ATTR{id/vendor}=="36b6", ATTR{id/product}=="c001", \
+    RUN+="/sbin/modprobe hid_alps", \
+    RUN+="/bin/sh -c 'echo %k > /sys/bus/hid/drivers/hid-generic/unbind 2>/dev/null; echo %k > /sys/bus/hid/drivers/hid-alps/bind 2>/dev/null'"
