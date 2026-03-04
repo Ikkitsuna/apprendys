@@ -25,6 +25,31 @@ else
     log "Etape 1/5 : Montage partitions deja fait par apprendys-mount.service"
 fi
 
+# Etape 1b : Montage P5 DEVOIRS (ntfs-3g, avant la session XFCE)
+# udisks2 ne monte pas P5 auto au boot (cle deja presente = pas d'event udev "add")
+# On monte ici en root avant que setup-devoirs-shortcut.sh (autostart XFCE) cherche la partition
+mkdir -p /mnt/devoirs
+if ! mountpoint -q /mnt/devoirs 2>/dev/null; then
+    if mount -t ntfs-3g -o uid=1000,gid=1000,umask=0022,noatime LABEL=DEVOIRS /mnt/devoirs 2>/dev/null; then
+        log "P5 DEVOIRS monte sur /mnt/devoirs"
+    else
+        log "P5 DEVOIRS non disponible (cle sans P5 ou ntfs-3g absent)"
+    fi
+fi
+
+# Etape 1c : Rebind touchpad I2C (warm boot - BIOS ne reset pas le controleur I2C)
+# ALPS, Elan : hid-generic recoit "unknown main item tag" apres warm boot -> touchpad mort
+# Fait ici (version patchee, post-rsync patches) car mount-partitions.sh tourne depuis squashfs
+for I2C_DEV in /sys/bus/i2c/devices/i2c-*; do
+    if readlink "$I2C_DEV/driver" 2>/dev/null | grep -q 'i2c_hid'; then
+        DEV=$(basename "$I2C_DEV")
+        echo "$DEV" > /sys/bus/i2c/drivers/i2c_hid_acpi/unbind 2>/dev/null || true
+        sleep 0.3
+        echo "$DEV" > /sys/bus/i2c/drivers/i2c_hid_acpi/bind 2>/dev/null || true
+        log "Touchpad I2C rebind : $DEV"
+    fi
+done
+
 # Etape 2 : Nettoyage
 log "Etape 2/5 : Nettoyage"
 /opt/apprendys/boot/cleanup.sh
