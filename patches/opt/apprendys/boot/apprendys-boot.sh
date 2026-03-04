@@ -11,6 +11,10 @@ log() { logger -t "$LOG_TAG" "$1"; echo "[boot] $1"; }
 
 log "========== Demarrage Apprendys =========="
 
+# Fix ownership /home/apprendys : le rsync de patches (squashfs) ecrase en root:root.
+# Ce script tourne depuis la version PATCHEE (apres rsync), donc le fix est effectif.
+chown 1000:1000 /home/apprendys 2>/dev/null || true
+
 # Etape 1 : Montage partitions
 # Normalement fait par apprendys-mount.service (sysinit, avant lightdm).
 # Fallback : si le service est desactive (cles pre-1.0.8), on le fait ici.

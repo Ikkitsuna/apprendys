@@ -14,3 +14,7 @@ pref("browser.startup.page", 1);
 // Pas de "what's new" au démarrage
 pref("browser.startup.firstrunSkipsHomepage", true);
 pref("trailhead.firstrun.didSeeAboutWelcome", true);
+
+// Desactiver xdg-desktop-portal pour les dialogs fichiers (non disponible sur live)
+// Sans ca : "Enregistrer image sous" ne fait rien (pas de fenetre)
+lockPref("widget.use-xdg-desktop-portal.file-picker", 0);

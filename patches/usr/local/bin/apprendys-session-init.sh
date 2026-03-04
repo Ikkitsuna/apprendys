@@ -56,7 +56,7 @@ fi
 P4_STT="/mnt/apprendys/models/stt"
 VOSK_DEFAULT="/opt/vosk/model-fr"
 
-if [ -d "$P4_STT" ]; then
+if [ -d "$P4_STT" ] && [ -n "$(ls -A "$P4_STT" 2>/dev/null)" ]; then
     MODEL_STT="$P4_STT"
     if ls "$P4_STT"/*.bin >/dev/null 2>&1; then
         MODEL_TYPE="whisper"
@@ -84,3 +84,28 @@ esac
 
 # TTS : piper binaire natif (<1s), pas de preload utile
 # L'upgrade P4 est detecte directement par apprendys-tts.sh via /mnt/apprendys/models/tts/
+
+# Fix LibreOffice : chemin autosave stale (/mnt/devoirs -> ~/Devoirs)
+LO_REG="/home/apprendys/.config/libreoffice/4/user/registrymodifications.xcu"
+if [ -f "$LO_REG" ]; then
+    sed -i 's|file:///mnt/devoirs|file:///home/apprendys/Devoirs|g' "$LO_REG" 2>/dev/null || true
+fi
+
+# Fix GTK bookmarks : retirer entrees /mnt/devoirs stales
+GTK_BOOKMARKS="/home/apprendys/.config/gtk-3.0/bookmarks"
+if [ -f "$GTK_BOOKMARKS" ]; then
+    sed -i '\|file:///mnt/devoirs|d' "$GTK_BOOKMARKS" 2>/dev/null || true
+fi
+
+# Fix Chromium : dossier "Enregistrer sous" -> ~/Devoirs
+CHROMIUM_PREFS="/home/apprendys/.config/chromium/Default/Preferences"
+if [ -f "$CHROMIUM_PREFS" ]; then
+    python3 -c "
+import json
+with open('$CHROMIUM_PREFS') as f:
+    p = json.load(f)
+p.setdefault('savefile', {})['default_directory'] = '/home/apprendys/Devoirs'
+with open('$CHROMIUM_PREFS', 'w') as f:
+    json.dump(p, f)
+" 2>/dev/null || true
+fi
