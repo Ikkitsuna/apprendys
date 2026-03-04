@@ -6,5 +6,5 @@
   "DefaultSearchProviderIconURL": "https://www.google.com/favicon.ico",
   "HomepageLocation": "https://www.google.fr",
   "NewTabPageLocation": "https://www.google.fr",
-  "DownloadDirectory": "/mnt/devoirs"
+  "DownloadDirectory": "/home/apprendys/Devoirs"
 }

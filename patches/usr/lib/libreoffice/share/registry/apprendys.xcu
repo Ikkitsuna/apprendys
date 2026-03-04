@@ -5,7 +5,7 @@
   <node oor:name="Paths">
     <node oor:name="Work">
       <prop oor:name="WritePath">
-        <value>file:///mnt/devoirs</value>
+        <value>file:///home/apprendys/Devoirs</value>
       </prop>
     </node>
   </node>

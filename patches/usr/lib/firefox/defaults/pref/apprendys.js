@@ -1,8 +1,8 @@
 // Apprendys - Préférences Firefox par défaut
 // Ces valeurs s'appliquent aux nouveaux profils
 
-// Dossier de téléchargement → DEVOIRS
-pref("browser.download.dir", "/mnt/devoirs");
+// Dossier de téléchargement → DEVOIRS (via raccourci ~/Devoirs cree au demarrage)
+pref("browser.download.dir", "/home/apprendys/Devoirs");
 pref("browser.download.folderList", 2);
 pref("browser.download.useDownloadDir", true);
 

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Apprendys Devoirs
+Comment=Cree le raccourci ~/Devoirs vers la partition DEVOIRS
+Exec=/opt/apprendys/bin/setup-devoirs-shortcut.sh
+Hidden=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
