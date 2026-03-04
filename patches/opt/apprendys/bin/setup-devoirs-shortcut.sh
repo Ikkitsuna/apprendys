@@ -3,7 +3,7 @@
 # Lance en autostart XFCE, apres casper/udisks2 ont monte la partition
 # CF-Informatik974 - 2026
 
-MAX_WAIT=20
+MAX_WAIT=60
 WAITED=0
 
 while [ $WAITED -lt $MAX_WAIT ]; do
