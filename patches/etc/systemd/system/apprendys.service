@@ -1,13 +1,9 @@
 [Unit]
 Description=Apprendys - Environnement educatif accessible
 After=apprendys-mount.service multi-user.target
-# Lightdm attend que ce service soit READY (P5 monte, home pret, touchpad rebind)
-# Sans Before= : lightdm et apprendys demarraient en parallele -> race condition P5
-Before=lightdm.service
 
 [Service]
-Type=notify
-TimeoutStartSec=30
+Type=simple
 ExecStart=/opt/apprendys/boot/apprendys-boot.sh
 ExecStop=/bin/bash -c "pkill -f apprendys-update.sh 2>/dev/null; kill $(cat /run/gnuramage.pid 2>/dev/null) 2>/dev/null; true"
 TimeoutStopSec=15
