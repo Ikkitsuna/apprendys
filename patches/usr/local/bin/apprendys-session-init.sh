@@ -85,6 +85,18 @@ esac
 # TTS : piper binaire natif (<1s), pas de preload utile
 # L'upgrade P4 est detecte directement par apprendys-tts.sh via /mnt/apprendys/models/tts/
 
+# Fix panel launchers : /mnt/devoirs -> /home/apprendys/Devoirs
+# Evite "Impossible d'ouvrir /mnt/devoirs" si P5 pas encore monte au premier clic
+find /home/apprendys/.config/xfce4/panel -name "*.desktop" 2>/dev/null | while read f; do
+    grep -q "/mnt/devoirs" "$f" 2>/dev/null && \
+        sed -i 's|/mnt/devoirs|/home/apprendys/Devoirs|g' "$f" 2>/dev/null || true
+done
+# Fix icones bureau : meme correction
+find /home/apprendys/Bureau -name "*.desktop" 2>/dev/null | while read f; do
+    grep -q "/mnt/devoirs" "$f" 2>/dev/null && \
+        sed -i 's|/mnt/devoirs|/home/apprendys/Devoirs|g' "$f" 2>/dev/null || true
+done
+
 # Fix LibreOffice : chemin autosave stale (/mnt/devoirs -> ~/Devoirs)
 LO_REG="/home/apprendys/.config/libreoffice/4/user/registrymodifications.xcu"
 if [ -f "$LO_REG" ]; then
