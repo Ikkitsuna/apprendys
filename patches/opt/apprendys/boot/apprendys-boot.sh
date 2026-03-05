@@ -50,11 +50,7 @@ for I2C_DEV in /sys/bus/i2c/devices/i2c-*; do
     fi
 done
 
-# Signal systemd : partie critique terminee (P5 monte, home pret, touchpad rebind)
-# Permet a lightdm (Before=lightdm.service dans apprendys.service) de demarrer maintenant
-# Sans ca : lightdm et apprendys demarrent en parallele -> race condition P5 non monte
 systemd-notify READY=1 2>/dev/null || true
-log "systemd-notify READY=1 envoye"
 
 # Etape 2 : Nettoyage
 log "Etape 2/5 : Nettoyage"
