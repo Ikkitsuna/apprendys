@@ -49,7 +49,15 @@ find "$RAMDISK/patches" -name "*.sh" -exec chmod +x {} \; 2>/dev/null
 rsync -a --ignore-errors "$RAMDISK/patches/usr/local/bin/" /usr/local/bin/ 2>/dev/null
 chmod +x /usr/local/bin/apprendys-*.sh 2>/dev/null
 
-#    Scripts de boot (pris en compte au prochain boot via patches/)
+#    Scripts de boot (application immediate + au prochain boot via patches/)
+#    CRITIQUE : apprendys-boot.sh doit etre deploye ET executable avant daemon-reload
+#    Sans ca : si apprendys.service change de Type= mais que le script n'est pas +x -> 203/EXEC
+if [ -d "$RAMDISK/patches/opt/apprendys" ]; then
+    rsync -a --ignore-errors "$RAMDISK/patches/opt/apprendys/" /opt/apprendys/ 2>/dev/null
+    find /opt/apprendys -name "*.sh" -exec chmod +x {} \; 2>/dev/null
+    log "Scripts boot /opt/apprendys deployes et +x"
+fi
+
 #    Systemd : daemon-reload si les .service ont change
 if [ -d "$RAMDISK/patches/etc/systemd/system" ]; then
     rsync -a --ignore-errors "$RAMDISK/patches/etc/systemd/system/" /etc/systemd/system/ 2>/dev/null
